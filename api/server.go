@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/onflow/flow-go/consensus/hotstuff/signature"
 
 	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -99,7 +100,13 @@ func (s *Server) GetBlockHeaderByHeight(_ context.Context, in *access.GetBlockHe
 		return nil, fmt.Errorf("could not retrieve block header at height %d: %w", in.Height, err)
 	}
 
-	blockMsg, err := convert.BlockHeaderToMessage(header)
+	decoder := signature.NewBlockSignerDecoder(nil)
+	signerIDs, err := decoder.DecodeSignerIDs(header)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode signer ids at height %d: %w", in.Height, err)
+	}
+
+	blockMsg, err := convert.BlockHeaderToMessage(header, signerIDs)
 	if err != nil {
 		return nil, fmt.Errorf("could not convert block header to RPC entity: %w", err)
 	}
