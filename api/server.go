@@ -24,13 +24,12 @@ import (
 
 	"github.com/onflow/cadence"
 	"github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/flow-archive/models/archive"
+	conv "github.com/onflow/flow-archive/models/convert"
 	"github.com/onflow/flow-go/engine/common/rpc/convert"
 	"github.com/onflow/flow-go/model/flow"
 	"github.com/onflow/flow/protobuf/go/flow/access"
 	"github.com/onflow/flow/protobuf/go/flow/entities"
-
-	conv "github.com/optakt/flow-dps/models/convert"
-	"github.com/optakt/flow-dps/models/dps"
 )
 
 // Server is a simple implementation of the generated AccessAPIServer interface.
@@ -38,14 +37,14 @@ import (
 // This is generally an on-disk interface, but could be a GRPC-based index as
 // well, in which case there is a double redirection.
 type Server struct {
-	index   dps.Reader
-	codec   dps.Codec
+	index   archive.Reader
+	codec   archive.Codec
 	invoker Invoker
 }
 
 // NewServer creates a new server, using the provided index reader as a backend
 // for data retrieval.
-func NewServer(index dps.Reader, codec dps.Codec, invoker Invoker) *Server {
+func NewServer(index archive.Reader, codec archive.Codec, invoker Invoker) *Server {
 	s := Server{
 		index:   index,
 		codec:   codec,

@@ -32,10 +32,10 @@ import (
 
 	"github.com/onflow/flow/protobuf/go/flow/access"
 
+	dpsApi "github.com/onflow/flow-archive/api/archive"
+	"github.com/onflow/flow-archive/codec/zbor"
+	"github.com/onflow/flow-archive/service/invoker"
 	accessApi "github.com/optakt/dps-access-api/api"
-	dpsApi "github.com/optakt/flow-dps/api/dps"
-	"github.com/optakt/flow-dps/codec/zbor"
-	"github.com/optakt/flow-dps/service/invoker"
 )
 
 const (
@@ -128,6 +128,7 @@ func run() int {
 	failed := make(chan struct{})
 	go func() {
 		log.Info().Msg("Flow Access API Server starting")
+
 		access.RegisterAccessAPIServer(gsvr, server)
 		err = gsvr.Serve(listener)
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {

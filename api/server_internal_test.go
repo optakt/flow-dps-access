@@ -28,8 +28,8 @@ import (
 	"github.com/onflow/flow/protobuf/go/flow/access"
 	"github.com/onflow/flow/protobuf/go/flow/entities"
 
-	"github.com/optakt/flow-dps/models/dps"
-	"github.com/optakt/flow-dps/testing/mocks"
+	"github.com/onflow/flow-archive/models/archive"
+	"github.com/onflow/flow-archive/testing/mocks"
 )
 
 func TestNewServer(t *testing.T) {
@@ -749,7 +749,7 @@ func TestServer_GetNetworkParameters(t *testing.T) {
 		resp, err := s.GetNetworkParameters(context.Background(), req)
 
 		require.NoError(t, err)
-		assert.Equal(t, dps.FlowTestnet.String(), resp.ChainId)
+		assert.Equal(t, archive.FlowTestnet.String(), resp.ChainId)
 	})
 
 	t.Run("handles indexer failure on first", func(t *testing.T) {
