@@ -302,6 +302,24 @@ func (s *Server) GetTransactionResult(_ context.Context, in *access.GetTransacti
 	return &resp, nil
 }
 
+// GetTransactionResultByIndex implements the GetTransactionResultByIndex endpoint from the Flow Access API.
+func (s *Server) GetTransactionResultByIndex(ctx context.Context, in *access.GetTransactionByIndexRequest) (*access.TransactionResultResponse, error) {
+	// TODO: implement this
+	return nil, errors.New("to be implemented")
+}
+
+// GetTransactionResultsByBlockID implements the GetTransactionResultsByBlockID endpoint from the Flow Access API.
+func (s *Server) GetTransactionResultsByBlockID(ctx context.Context, in *access.GetTransactionsByBlockIDRequest) (*access.TransactionResultsResponse, error) {
+	// TODO: implement this
+	return nil, errors.New("to be implemented")
+}
+
+// GetTransactionsByBlockID implements the GetTransactionsByBlockID endpoint from the Flow Access API.
+func (s *Server) GetTransactionsByBlockID(ctx context.Context, in *access.GetTransactionsByBlockIDRequest) (*access.TransactionsResponse, error) {
+	// TODO: implement this
+	return nil, errors.New("to be implemented")
+}
+
 // GetAccount implements the GetAccount endpoint from the Flow Access API.
 // See https://docs.onflow.org/access-api/#getaccount
 func (s *Server) GetAccount(ctx context.Context, in *access.GetAccountRequest) (*access.GetAccountResponse, error) {
@@ -398,7 +416,7 @@ func (s *Server) ExecuteScriptAtBlockID(ctx context.Context, in *access.ExecuteS
 func (s *Server) ExecuteScriptAtBlockHeight(_ context.Context, in *access.ExecuteScriptAtBlockHeightRequest) (*access.ExecuteScriptResponse, error) {
 	var args []cadence.Value
 	for _, arg := range in.Arguments {
-		val, err := json.Decode(arg)
+		val, err := json.Decode(nil, arg)
 		if err != nil {
 			return nil, fmt.Errorf("could not decode script argument: %w", err)
 		}
