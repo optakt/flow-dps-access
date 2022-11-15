@@ -16,13 +16,6 @@ jobs:
       - name: Check out source code
         uses: actions/checkout@v2
 
-      - name: Check out FlowGo
-        uses: actions/checkout@v2
-        with:
-          repository: onflow/flow-go
-          ref: c0afa789365eb7a22713ed76b8de1e3efaf3a70a
-          path: flow-go
-
       - name: Install Go
         uses: actions/setup-go@v2
         with:
@@ -40,22 +33,6 @@ jobs:
       # action's output, which might be convenient.
       - name: Print Go version
         run: go version
-
-      # Since building relic takes some time, we want to cache it.
-      - name: Cache Crypto package
-        uses: actions/cache@v2
-        with:
-          path: ./flow-go/crypto
-          key: ${{ runner.os }}-crypto
-          restore-keys: |
-            ${{ runner.os }}-crypto
-
-      # In order to be able to build with flow-go and the relic tag, we need to
-      # run its go generate target.
-      - name: Install Flow Go's crypto
-        run: |
-          cd ./flow-go/crypto
-          go generate .
 
       # This check makes sure that the `go.mod` and `go.sum` files for Go
       # modules are always up-to-date.
