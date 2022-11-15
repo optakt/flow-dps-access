@@ -18,7 +18,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/onflow/flow-go/consensus/hotstuff/signature"
+	"github.com/onflow/flow-go/fvm/blueprints"
 
 	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -27,6 +27,7 @@ import (
 	"github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow-archive/models/archive"
 	conv "github.com/onflow/flow-archive/models/convert"
+	"github.com/onflow/flow-go/consensus/hotstuff/signature"
 	"github.com/onflow/flow-go/engine/common/rpc/convert"
 	"github.com/onflow/flow-go/model/flow"
 	"github.com/onflow/flow/protobuf/go/flow/access"
@@ -311,20 +312,98 @@ func (s *Server) GetTransactionResult(_ context.Context, in *access.GetTransacti
 
 // GetTransactionResultByIndex implements the GetTransactionResultByIndex endpoint from the Flow Access API.
 func (s *Server) GetTransactionResultByIndex(ctx context.Context, in *access.GetTransactionByIndexRequest) (*access.TransactionResultResponse, error) {
-	// TODO: implement this
-	return nil, errors.New("to be implemented")
+	req := access.GetTransactionsByBlockIDRequest{
+		BlockId: in.BlockId,
+	}
+
+	resp, err := s.GetTransactionResultsByBlockID(ctx, &req)
+	for _, result := range resp.TransactionResults {
+		for _, event := range result.Events {
+			if event.TransactionIndex == in.Index {
+				return result, nil
+			}
+		}
+	}
+	return nil, fmt.Errorf("could not get transactions for index %x: %w", in.Index, err)
 }
 
 // GetTransactionResultsByBlockID implements the GetTransactionResultsByBlockID endpoint from the Flow Access API.
 func (s *Server) GetTransactionResultsByBlockID(ctx context.Context, in *access.GetTransactionsByBlockIDRequest) (*access.TransactionResultsResponse, error) {
-	// TODO: implement this
-	return nil, errors.New("to be implemented")
+	blockId := flow.HashToID(in.BlockId)
+	height, err := s.index.HeightForBlock(blockId)
+	if err != nil {
+		return nil, fmt.Errorf("could not get height for block %x: %w", blockId, err)
+	}
+
+	transactions, err := s.index.TransactionsByHeight(height)
+	if err != nil {
+		return nil, fmt.Errorf("could not get transactions for height %x: %w", height, err)
+	}
+
+	var transactionResults []*access.TransactionResultResponse
+	for _, transaction := range transactions {
+		req := access.GetTransactionRequest{
+			Id: convert.IdentifierToMessage(transaction),
+		}
+		response, err := s.GetTransactionResult(ctx, &req)
+		if err != nil {
+			return nil, fmt.Errorf("could not get transaction for id %x: %w", transaction, err)
+		}
+		transactionResults = append(transactionResults, response)
+	}
+
+	resp := access.TransactionResultsResponse{
+		TransactionResults: transactionResults,
+	}
+	return &resp, nil
 }
 
 // GetTransactionsByBlockID implements the GetTransactionsByBlockID endpoint from the Flow Access API.
 func (s *Server) GetTransactionsByBlockID(ctx context.Context, in *access.GetTransactionsByBlockIDRequest) (*access.TransactionsResponse, error) {
-	// TODO: implement this
-	return nil, errors.New("to be implemented")
+	blockId := flow.HashToID(in.BlockId)
+	height, err := s.index.HeightForBlock(blockId)
+	if err != nil {
+		return nil, fmt.Errorf("could not get height for block %x: %w", blockId, err)
+	}
+
+	headerReq := access.GetBlockHeaderByHeightRequest{
+		Height: height,
+	}
+	headerResp, err := s.GetBlockHeaderByHeight(ctx, &headerReq)
+	if err != nil {
+		return nil, fmt.Errorf("could not get header for height %x: %w", height, err)
+	}
+	header, err := convert.MessageToBlockHeader(headerResp.Block)
+	if err != nil {
+		return nil, fmt.Errorf("could not convert header for height %x: %w", height, err)
+	}
+
+	transactions, err := s.index.TransactionsByHeight(height)
+	if err != nil {
+		return nil, fmt.Errorf("could not get transactions for height %x: %w", height, err)
+	}
+
+	var transactionsEntity []*entities.Transaction
+	for _, transaction := range transactions {
+		req := access.GetTransactionRequest{
+			Id: convert.IdentifierToMessage(transaction),
+		}
+		resp, err := s.GetTransaction(ctx, &req)
+		if err != nil {
+			return nil, fmt.Errorf("could not get transactions for id %x: %w", transaction, err)
+		}
+
+		transactionsEntity = append(transactionsEntity, resp.Transaction)
+	}
+
+	chain := header.ChainID.Chain()
+	systemTx, err := blueprints.SystemChunkTransaction(chain)
+	transactionsEntity = append(transactionsEntity, convert.TransactionToMessage(*systemTx))
+
+	resp := access.TransactionsResponse{
+		Transactions: transactionsEntity,
+	}
+	return &resp, nil
 }
 
 // GetAccount implements the GetAccount endpoint from the Flow Access API.
