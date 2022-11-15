@@ -16,6 +16,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check out FlowGo
+        uses: actions/checkout@v2
+        with:
+          repository: onflow/flow-go
+          path: flow-go
+
       - name: Install Go
         uses: actions/setup-go@v2
         with:
@@ -33,6 +39,13 @@ jobs:
       # action's output, which might be convenient.
       - name: Print Go version
         run: go version
+
+      # In order to be able to build with flow-go and the relic tag, we need to
+      # run its go generate target.
+      - name: Install Flow Go's crypto
+        run: |
+          cd ./flow-go
+          make crypto_setup_gopath
 
       # This check makes sure that the `go.mod` and `go.sum` files for Go
       # modules are always up-to-date.
