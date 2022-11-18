@@ -1,6 +1,6 @@
 ## Access API
 
-Flow DPS implements the [Flow Access API Specification](https://docs.onflow.org/access-api/), except for the following endpoints:
+Flow DPS implements the [Flow Access API Specification](https://developers.flow.com/nodes/access-api), except for the following endpoints:
 
 * `SendTransaction`
 * `GetLatestProtocolStateSnapshot`
