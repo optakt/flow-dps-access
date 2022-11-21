@@ -16,10 +16,12 @@ package main
 
 import (
 	"errors"
+	"google.golang.org/grpc/credentials/insecure"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -51,7 +53,7 @@ func run() int {
 
 	// Signal catching for clean shutdown.
 	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt)
+	signal.Notify(sig, syscall.SIGINT)
 
 	// Command line parameter initialization.
 	var (
@@ -98,7 +100,7 @@ func run() int {
 	)
 
 	// Initialize the API client.
-	conn, err := grpc.Dial(flagDPS, grpc.WithInsecure())
+	conn, err := grpc.Dial(flagDPS, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Error().Str("dps", flagDPS).Err(err).Msg("could not dial API host")
 		return failure

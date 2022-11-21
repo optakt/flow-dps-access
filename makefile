@@ -23,20 +23,17 @@ export CONTAINER_REGISTRY := gcr.io/flow-container-registry/flow-archive-access
 # Dev Utilities
 #############################################################################################################
 
-.PHONY: unittest
-unittest:
+.PHONY: test
+test:
 	go test -tags relic -v $(ALL_PACKAGES)
 
 .PHONY: compile
 compile:
 	go build -tags relic $(ALL_PACKAGES)
 
-.PHONY: integ-test
-integ-test:
-	go test -v -tags="relic integration" $(ALL_PACKAGES)
-
-.PHONY: test
-test: unittest integ-test
+.PHONY: lint
+lint:
+	golangci-lint run -v --build-tags relic --timeout=3m
 
 # Docker Utilities! Do not delete these targets
 #############################################################################################################
