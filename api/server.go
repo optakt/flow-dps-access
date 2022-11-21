@@ -396,7 +396,10 @@ func (s *Server) GetTransactionsByBlockID(ctx context.Context, in *access.GetTra
 	}
 
 	chain := header.ChainID.Chain()
-	systemTx, _ := blueprints.SystemChunkTransaction(chain)
+	systemTx, err := blueprints.SystemChunkTransaction(chain)
+	if err != nil {
+		return nil, fmt.Errorf("could not get system transactipn for height %x: %w", height, err)
+	}
 	transactionsEntity = append(transactionsEntity, convert.TransactionToMessage(*systemTx))
 
 	resp := access.TransactionsResponse{
@@ -547,9 +550,6 @@ func (s *Server) GetEventsForHeightRange(_ context.Context, in *access.GetEvents
 		}
 
 		timestamp := timestamppb.New(header.Timestamp)
-		if err != nil {
-			return nil, fmt.Errorf("could not parse timestamp for block at height %d: %w", height, err)
-		}
 
 		messages := make([]*entities.Event, 0, len(ee))
 		for _, event := range ee {
@@ -601,9 +601,6 @@ func (s *Server) GetEventsForBlockIDs(_ context.Context, in *access.GetEventsFor
 		}
 
 		timestamp := timestamppb.New(header.Timestamp)
-		if err != nil {
-			return nil, fmt.Errorf("could not parse timestamp for block at height %d: %w", height, err)
-		}
 
 		messages := make([]*entities.Event, 0, len(ee))
 		for _, event := range ee {
