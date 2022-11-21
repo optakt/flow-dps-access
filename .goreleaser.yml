@@ -2,8 +2,8 @@
 # Windows builds. We also can only build on amd64 architectures since all others are also not
 # supported at the moment.
 builds:
-  - id: dps-access-api
-    binary: dps-access-api
+  - id: archive-access-api
+    binary: archive-access-api
     main: ./cmd/flow-dps-live
     goos:
       - linux
