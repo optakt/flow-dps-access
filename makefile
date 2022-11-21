@@ -9,6 +9,10 @@ ifeq (${IMAGE_TAG},)
 IMAGE_TAG := ${VERSION}
 endif
 
+ifeq (${IMAGE_TAG},)
+IMAGE_TAG := ${SHORT_COMMIT}
+endif
+
 export DOCKER_BUILDKIT := 1
 
 ALL_PACKAGES := ./...

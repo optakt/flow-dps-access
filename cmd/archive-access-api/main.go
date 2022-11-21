@@ -61,7 +61,7 @@ func run() int {
 		flagLevel   string
 	)
 
-	pflag.StringVarP(&flagAddress, "address", "a", "127.0.0.1:443", "address to serve Access API on")
+	pflag.StringVarP(&flagAddress, "address", "a", "127.0.0.1:5006", "address to serve Access API on")
 	pflag.StringVarP(&flagDPS, "dps", "d", "127.0.0.1:5005", "host URL for DPS API endpoint")
 	pflag.StringVarP(&flagLevel, "level", "l", "info", "log output level")
 
