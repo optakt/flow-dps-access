@@ -3,12 +3,24 @@ FROM golang:1.19 AS build-setup
 RUN apt-get update \
  && apt-get -y install cmake zip sudo git
 
-RUN mkdir /archive
+ENV FLOW_GO_REPO="https://github.com/onflow/flow-go"
+
+RUN mkdir /archive /flow-go
 
 WORKDIR /archive
 
 # clone repos
 COPY . /archive
+RUN git clone $FLOW_GO_REPO /flow-go
+
+RUN ln -s /flow-go /archive/flow-go
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build  \
+    make -C /flow-go crypto_setup_gopath #prebuild crypto dependency \
+    bash crypto_setup.sh
+
+RUN ls -la /flow-go/crypto/
 
 FROM build-setup AS build-binary
 

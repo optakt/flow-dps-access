@@ -16,6 +16,12 @@ jobs:
       - name: Check out source code
         uses: actions/checkout@v2
 
+      - name: Check out FlowGo
+        uses: actions/checkout@v2
+        with:
+          repository: onflow/flow-go
+          path: flow-go
+
       - name: Install Go
         uses: actions/setup-go@v2
         with:
@@ -28,6 +34,23 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
+
+      # Since building relic takes some time, we want to cache it.
+      - name: Cache Crypto package
+        uses: actions/cache@v2
+        with:
+          path: ./flow-go/crypto
+          key: ${{ runner.os }}-crypto
+          restore-keys: |
+            ${{ runner.os }}-crypto
+
+      # In order to be able to build with flow-go and the relic tag, we need to
+      # run its go generate target.
+      - name: Make Flow Go's crypto
+        run: |
+          cd ./flow-go
+          make crypto_setup_gopath
+
 
       # This check makes sure that the `go.mod` and `go.sum` files for Go
       # modules are always up-to-date.
@@ -42,7 +65,7 @@ jobs:
       # This check makes sure that we can compile the binary as a pure Go binary
       # without CGO support.
       - name: Verify compilation
-        run: go build -tags relic ./...
+        run: go build -tags relic -v ./...
 
       # This check runs all unit tests with verbose output and ensures that all
       # of the tests pass successfully.
@@ -55,11 +78,11 @@ jobs:
         run: go test -v -tags="relic integration" ./...
 
       - name: Run golangci-lint
-          uses: golangci/golangci-lint-action@v3
-          with:
-            args: -v --build-tags relic --timeout=3m
-            working-directory: .
-            skip-pkg-cache: true
+        uses: golangci/golangci-lint-action@v3
+        with:
+          args: -v --build-tags relic --timeout=3m
+          working-directory: .
+          skip-pkg-cache: true
 
   docker-verify:
     name: verify docker build
