@@ -23,6 +23,7 @@ import (
 
 	"github.com/onflow/cadence"
 	"github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/flow-go/engine/common/rpc/convert"
 	"github.com/onflow/flow-go/ledger"
 	"github.com/onflow/flow-go/model/flow"
 	"github.com/onflow/flow/protobuf/go/flow/access"
@@ -308,6 +309,8 @@ func TestServer_GetTransactionResult(t *testing.T) {
 		assert.Equal(t, blockID[:], resp.BlockId)
 		assert.Equal(t, entities.TransactionStatus_SEALED, resp.Status)
 		assert.Equal(t, uint32(1), resp.StatusCode)
+		assert.Equal(t, convert.IdentifierToMessage(txID), resp.TransactionId)
+		assert.Equal(t, header.Height, resp.BlockHeight)
 	})
 
 	t.Run("nominal case with status executed and an error message", func(t *testing.T) {
@@ -436,6 +439,161 @@ func TestServer_GetTransactionResult(t *testing.T) {
 		_, err := s.GetTransactionResult(context.Background(), req)
 
 		assert.Error(t, err)
+	})
+}
+
+func TestServer_GetTransactionResultByIndex(t *testing.T) {
+	blockID := mocks.GenericBlock.BlockID
+	header := mocks.GenericHeader
+	txResults := mocks.GenericResults(3)
+
+	var txIDs []flow.Identifier
+	txMap := make(map[flow.Identifier]*flow.TransactionResult)
+	for _, tx := range txResults {
+		txMap[tx.ID()] = tx
+		txIDs = append(txIDs, tx.ID())
+	}
+
+	t.Run("nominal case", func(t *testing.T) {
+		t.Parallel()
+		index := mocks.BaselineReader(t)
+		index.HeightForBlockFunc = func(blockID flow.Identifier) (uint64, error) {
+			return header.Height, nil
+		}
+		index.TransactionsByHeightFunc = func(height uint64) ([]flow.Identifier, error) {
+			return txIDs, nil
+		}
+		index.HeaderFunc = func(height uint64) (*flow.Header, error) {
+			return header, nil
+		}
+		index.HeightForTransactionFunc = func(txID flow.Identifier) (uint64, error) {
+			return header.Height, nil
+		}
+		index.ResultFunc = func(txID flow.Identifier) (*flow.TransactionResult, error) {
+			return txMap[txID], nil
+		}
+
+		// need to improve mocking events so we can relate it to the transactions better
+		index.EventsFunc = func(height uint64, types ...flow.EventType) ([]flow.Event, error) {
+			return mocks.GenericEvents(5), nil
+		}
+		index.LastFunc = func() (uint64, error) {
+			return header.Height, nil
+		}
+
+		s := baselineServer(t)
+		s.index = index
+
+		req := &access.GetTransactionByIndexRequest{
+			BlockId: convert.IdentifierToMessage(blockID),
+			Index:   0,
+		}
+
+		resp, err := s.GetTransactionResultByIndex(context.Background(), req)
+		require.NoError(t, err)
+
+		assert.Equal(t, resp.TransactionId, convert.IdentifierToMessage(txResults[0].TransactionID))
+		assert.Equal(t, resp.BlockHeight, header.Height)
+	})
+}
+
+func TestServer_GetTransactionResultsByBlockID(t *testing.T) {
+	blockID := mocks.GenericBlock.BlockID
+	header := mocks.GenericHeader
+	txResults := mocks.GenericResults(3)
+
+	var txIDs []flow.Identifier
+	txMap := make(map[flow.Identifier]*flow.TransactionResult)
+	for _, tx := range txResults {
+		txMap[tx.ID()] = tx
+		txIDs = append(txIDs, tx.ID())
+	}
+
+	t.Run("nominal case", func(t *testing.T) {
+		t.Parallel()
+		index := mocks.BaselineReader(t)
+		index.HeightForBlockFunc = func(blockID flow.Identifier) (uint64, error) {
+			return header.Height, nil
+		}
+		index.TransactionsByHeightFunc = func(height uint64) ([]flow.Identifier, error) {
+			return txIDs, nil
+		}
+		index.HeaderFunc = func(height uint64) (*flow.Header, error) {
+			return header, nil
+		}
+		index.HeightForTransactionFunc = func(txID flow.Identifier) (uint64, error) {
+			return header.Height, nil
+		}
+		index.ResultFunc = func(txID flow.Identifier) (*flow.TransactionResult, error) {
+			return txMap[txID], nil
+		}
+		index.EventsFunc = func(height uint64, types ...flow.EventType) ([]flow.Event, error) {
+			return mocks.GenericEvents(5), nil
+		}
+		index.LastFunc = func() (uint64, error) {
+			return header.Height, nil
+		}
+
+		s := baselineServer(t)
+		s.index = index
+
+		req := &access.GetTransactionsByBlockIDRequest{
+			BlockId: convert.IdentifierToMessage(blockID),
+		}
+		resp, err := s.GetTransactionResultsByBlockID(context.Background(), req)
+		require.NoError(t, err)
+
+		for i := 0; i < len(resp.TransactionResults); i++ {
+			assert.Equal(t, resp.TransactionResults[i].BlockId, convert.IdentifierToMessage(blockID))
+			assert.Equal(t, resp.TransactionResults[i].BlockHeight, header.Height)
+			assert.Equal(t, resp.TransactionResults[i].TransactionId, convert.IdentifierToMessage(txResults[i].TransactionID))
+		}
+	})
+}
+
+func TestServer_GetTransactionsByBlockID(t *testing.T) {
+	txs := mocks.GenericTransactions(3)
+	blockID := mocks.GenericBlock.BlockID
+	header := mocks.GenericHeader
+
+	var txIDs []flow.Identifier
+	txMap := make(map[flow.Identifier]*flow.TransactionBody)
+	for _, tx := range txs {
+		txMap[tx.ID()] = tx
+		txIDs = append(txIDs, tx.ID())
+	}
+
+	t.Run("nominal case", func(t *testing.T) {
+		t.Parallel()
+		index := mocks.BaselineReader(t)
+		index.HeightForBlockFunc = func(blockID flow.Identifier) (uint64, error) {
+			return header.Height, nil
+		}
+		index.HeaderFunc = func(height uint64) (*flow.Header, error) {
+			return header, nil
+		}
+		index.TransactionsByHeightFunc = func(height uint64) ([]flow.Identifier, error) {
+			return txIDs, nil
+		}
+		index.TransactionFunc = func(txID flow.Identifier) (*flow.TransactionBody, error) {
+			return txMap[txID], nil
+		}
+
+		s := baselineServer(t)
+		s.index = index
+
+		req := &access.GetTransactionsByBlockIDRequest{
+			BlockId: convert.IdentifierToMessage(blockID),
+		}
+		resp, err := s.GetTransactionsByBlockID(context.Background(), req)
+
+		require.NoError(t, err)
+
+		// excludes the last transaction (system tx)
+		for i := 0; i < len(resp.Transactions)-1; i++ {
+			assert.Equal(t, resp.Transactions[i].ReferenceBlockId, convert.IdentifierToMessage(txs[i].ReferenceBlockID))
+			assert.Equal(t, resp.Transactions[i].Arguments, txs[i].Arguments)
+		}
 	})
 }
 

@@ -2,7 +2,7 @@
 
 ## Description
 
-The Flow Access Server runs on top of a DPS index to implement the [Flow Access API](https://docs.onflow.org/access-api).
+The Flow Access Server runs on top of a DPS index to implement the [Flow Access API](https://developers.flow.com/nodes/access-api).
 Both the Flow DPS Indexer and the Flow DPS Live tool can create such an index.
 In the case of the indexer, the index is static and built from a previous spork's state.
 For the live tool, the index is dynamic and updated on an ongoing basis from the data sent from a Flow execution node.

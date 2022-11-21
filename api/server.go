@@ -299,11 +299,13 @@ func (s *Server) GetTransactionResult(_ context.Context, in *access.GetTransacti
 	}
 
 	resp := access.TransactionResultResponse{
-		Status:       status,
-		StatusCode:   statusCode,
-		ErrorMessage: result.ErrorMessage,
-		Events:       convert.EventsToMessages(events),
-		BlockId:      blockID[:],
+		Status:        status,
+		StatusCode:    statusCode,
+		ErrorMessage:  result.ErrorMessage,
+		Events:        convert.EventsToMessages(events),
+		BlockId:       blockID[:],
+		TransactionId: convert.IdentifierToMessage(txID),
+		BlockHeight:   height,
 	}
 
 	return &resp, nil
