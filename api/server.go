@@ -398,7 +398,7 @@ func (s *Server) GetTransactionsByBlockID(ctx context.Context, in *access.GetTra
 	chain := header.ChainID.Chain()
 	systemTx, err := blueprints.SystemChunkTransaction(chain)
 	if err != nil {
-		return nil, fmt.Errorf("could not get system transactipn for height %x: %w", height, err)
+		return nil, fmt.Errorf("could not get system transaction for height %x: %w", height, err)
 	}
 	transactionsEntity = append(transactionsEntity, convert.TransactionToMessage(*systemTx))
 
