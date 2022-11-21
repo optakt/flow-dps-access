@@ -3,28 +3,12 @@ FROM golang:1.19 AS build-setup
 RUN apt-get update \
  && apt-get -y install cmake zip sudo git
 
-# Build flow-go so crypto doesn't break compilation
-
-ENV FLOW_GO_REPO="https://github.com/onflow/flow-go"
-ENV FLOW_GO_BRANCH=v0.28.11
-
-RUN mkdir /archive /docker /flow-go
+RUN mkdir /archive
 
 WORKDIR /archive
 
 # clone repos
 COPY . /archive
-RUN git clone --branch $FLOW_GO_BRANCH $FLOW_GO_REPO /flow-go
-
-RUN ln -s /flow-go /archive/flow-go
-
-RUN --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build  \
-    make -C /flow-go crypto_setup_gopath #prebuild crypto dependency \
-    bash crypto_setup.sh
-
-RUN ls -la /flow-go/crypto/
-
 
 FROM build-setup AS build-binary
 
