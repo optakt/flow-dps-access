@@ -6,7 +6,7 @@ RUN apt-get update \
 # Build flow-go so crypto doesn't break compilation
 
 ENV FLOW_GO_REPO="https://github.com/onflow/flow-go"
-ENV FLOW_GO_BRANCH=v0.28.5
+ENV FLOW_GO_BRANCH=v0.28.11
 
 RUN mkdir /archive /docker /flow-go
 
