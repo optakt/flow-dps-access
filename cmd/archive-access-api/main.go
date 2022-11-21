@@ -16,10 +16,12 @@ package main
 
 import (
 	"errors"
+	"google.golang.org/grpc/credentials/insecure"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -32,10 +34,10 @@ import (
 
 	"github.com/onflow/flow/protobuf/go/flow/access"
 
+	accessApi "github.com/onflow/flow-archive-access/api"
 	dpsApi "github.com/onflow/flow-archive/api/archive"
 	"github.com/onflow/flow-archive/codec/zbor"
 	"github.com/onflow/flow-archive/service/invoker"
-	accessApi "github.com/optakt/dps-access-api/api"
 )
 
 const (
@@ -51,7 +53,7 @@ func run() int {
 
 	// Signal catching for clean shutdown.
 	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt)
+	signal.Notify(sig, syscall.SIGINT)
 
 	// Command line parameter initialization.
 	var (
@@ -98,7 +100,7 @@ func run() int {
 	)
 
 	// Initialize the API client.
-	conn, err := grpc.Dial(flagDPS, grpc.WithInsecure())
+	conn, err := grpc.Dial(flagDPS, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Error().Str("dps", flagDPS).Err(err).Msg("could not dial API host")
 		return failure

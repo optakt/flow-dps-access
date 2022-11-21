@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"github.com/onflow/flow-go/fvm/blueprints"
 
-	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/onflow/cadence"
@@ -400,6 +399,9 @@ func (s *Server) GetTransactionsByBlockID(ctx context.Context, in *access.GetTra
 
 	chain := header.ChainID.Chain()
 	systemTx, err := blueprints.SystemChunkTransaction(chain)
+	if err != nil {
+		return nil, fmt.Errorf("could not get system transaction for height %x: %w", height, err)
+	}
 	transactionsEntity = append(transactionsEntity, convert.TransactionToMessage(*systemTx))
 
 	resp := access.TransactionsResponse{
@@ -549,10 +551,7 @@ func (s *Server) GetEventsForHeightRange(_ context.Context, in *access.GetEvents
 			return nil, fmt.Errorf("could not get header at height %d: %w", height, err)
 		}
 
-		timestamp, err := ptypes.TimestampProto(header.Timestamp)
-		if err != nil {
-			return nil, fmt.Errorf("could not parse timestamp for block at height %d: %w", height, err)
-		}
+		timestamp := timestamppb.New(header.Timestamp)
 
 		messages := make([]*entities.Event, 0, len(ee))
 		for _, event := range ee {
@@ -603,10 +602,7 @@ func (s *Server) GetEventsForBlockIDs(_ context.Context, in *access.GetEventsFor
 			return nil, fmt.Errorf("could not get header at height %d: %w", height, err)
 		}
 
-		timestamp, err := ptypes.TimestampProto(header.Timestamp)
-		if err != nil {
-			return nil, fmt.Errorf("could not parse timestamp for block at height %d: %w", height, err)
-		}
+		timestamp := timestamppb.New(header.Timestamp)
 
 		messages := make([]*entities.Event, 0, len(ee))
 		for _, event := range ee {

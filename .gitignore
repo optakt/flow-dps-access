@@ -1,4 +1,4 @@
-/cmd/dps-access-api/dps-access-api
+/cmd/archive-access-api/archive-access-api
 flow-go/
 *.cdc
 *.checkpoint

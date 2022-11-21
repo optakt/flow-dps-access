@@ -10,7 +10,7 @@ For the live tool, the index is dynamic and updated on an ongoing basis from the
 ## Usage
 
 ```sh
-Usage of dps-access-api:
+Usage of archive-access-api:
   -a, --address string    address to serve GRPC API on (default "127.0.0.1:5006")
   -d, --dps string        host URL for DPS API endpoint (default "127.0.0.1:5005")
   -l, --log string        log output level (default "info")
@@ -22,5 +22,5 @@ Usage of dps-access-api:
 The following command line starts the DPS Access API server to serve requests on port `5006`.
 
 ```sh
-./dps-access-api -a "127.0.0.1:5005" -p 5006
+./archive-access-api -a "127.0.0.1:5005" -p 5006
 ```

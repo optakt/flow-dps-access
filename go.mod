@@ -1,4 +1,4 @@
-module github.com/optakt/dps-access-api
+module github.com/onflow/flow-archive-access
 
 go 1.19
 
