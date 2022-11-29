@@ -11,8 +11,8 @@ For the live tool, the index is dynamic and updated on an ongoing basis from the
 
 ```sh
 Usage of archive-access-api:
-  -a, --address string    address to serve GRPC API on (default "127.0.0.1:5006")
-  -d, --dps string        host URL for DPS API endpoint (default "127.0.0.1:5005")
+  -a, --address string    address to serve GRPC API on (default "127.0.0.1:9000")
+  -d, --archive string    host URL for DPS API endpoint (default "127.0.0.1:80")
   -l, --log string        log output level (default "info")
       --cache-size uint   maximum cache size for register reads in bytes (default 1000000000)
 ```
