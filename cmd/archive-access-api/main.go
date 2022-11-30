@@ -35,7 +35,7 @@ import (
 	"github.com/onflow/flow/protobuf/go/flow/access"
 
 	accessApi "github.com/onflow/flow-archive-access/api"
-	dpsApi "github.com/onflow/flow-archive/api/archive"
+	archiveAPI "github.com/onflow/flow-archive/api/archive"
 	"github.com/onflow/flow-archive/codec/zbor"
 	"github.com/onflow/flow-archive/service/invoker"
 )
@@ -58,13 +58,13 @@ func run() int {
 	// Command line parameter initialization.
 	var (
 		flagAddress string
-		flagDPS     string
+		flagArchive string
 		flagCache   uint64
 		flagLevel   string
 	)
 
-	pflag.StringVarP(&flagAddress, "address", "a", "127.0.0.1:5006", "address to serve Access API on")
-	pflag.StringVarP(&flagDPS, "dps", "d", "127.0.0.1:5005", "host URL for DPS API endpoint")
+	pflag.StringVarP(&flagAddress, "address", "a", "127.0.0.1:9000", "address to serve Access API on")
+	pflag.StringVarP(&flagArchive, "archive", "d", "127.0.0.1:80", "host URL for Archive API endpoint")
 	pflag.StringVarP(&flagLevel, "level", "l", "info", "log output level")
 
 	pflag.Uint64Var(&flagCache, "cache-size", 1_000_000_000, "maximum cache size for register reads in bytes")
@@ -100,15 +100,15 @@ func run() int {
 	)
 
 	// Initialize the API client.
-	conn, err := grpc.Dial(flagDPS, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(flagArchive, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Error().Str("dps", flagDPS).Err(err).Msg("could not dial API host")
+		log.Error().Str("dps", flagArchive).Err(err).Msg("could not dial API host")
 		return failure
 	}
 	defer conn.Close()
 
-	client := dpsApi.NewAPIClient(conn)
-	index := dpsApi.IndexFromAPI(client, codec)
+	client := archiveAPI.NewAPIClient(conn)
+	index := archiveAPI.IndexFromAPI(client, codec)
 
 	invoke, err := invoker.New(index, invoker.WithCacheSize(flagCache))
 	if err != nil {
